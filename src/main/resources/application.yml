@@ -1,0 +1,4 @@
+
+spring.main.sources: dk.dma.enav.integrations.MySpringBootRouter
+
+server.port: 9080
