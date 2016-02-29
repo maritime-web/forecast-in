@@ -43,6 +43,7 @@ public class ForecastInTest {
     @Produce(uri="file:target/test-classes/idempotent")
     private ProducerTemplate producer;
 
+    // Setup a basic environment before running the tests
     @Before
     public void setUp() {
         fakeFtpServer = new FakeFtpServer();
@@ -73,6 +74,11 @@ public class ForecastInTest {
         end.expectedMessageCount(1);
 
         end.assertIsSatisfied();
+
+        // Make sure that the received file has the correct file name
+        String fileName = (String) end.getReceivedExchanges().get(0).getIn().getHeader(Exchange.FILE_NAME_ONLY);
+        assertEquals(fileName, "DMI1.nc");
+
         fakeFtpServer.stop();
     }
 
@@ -89,20 +95,23 @@ public class ForecastInTest {
         MockEndpoint end = context.getEndpoint("mock:endpoint", MockEndpoint.class);
         end.expectedMessageCount(1);
 
-        producer.sendBodyAndHeader("file://target/test-classes/idempotent", Exchange.FILE_NAME, "DMI3.nc");
+        producer.sendBodyAndHeader("file://target/test-classes/idempotent", Exchange.FILE_NAME, "FCOO1.nc");
 
         end.assertIsSatisfied();
+
+        String fileName = (String) end.getReceivedExchanges().get(0).getIn().getHeader(Exchange.FILE_NAME_ONLY);
+        assertEquals(fileName, "FCOO1.nc");
 
         // reset the mock
         end.reset();
         end.expectedMessageCount(0);
 
         // move file back
-        File file = new File("target/test-classes/idempotent/.camel/DMI3.nc");
-        File renamed = new File("target/test-classes/idempotent/DMI3.nc");
+        File file = new File("target/test-classes/idempotent/.camel/FCOO1.nc");
+        File renamed = new File("target/test-classes/idempotent/FCOO1.nc");
         file.renameTo(renamed);
 
-        producer.sendBodyAndHeader("file://target/test-classes/idempotent", Exchange.FILE_NAME, "DMI3.nc");
+        producer.sendBodyAndHeader("file://target/test-classes/idempotent", Exchange.FILE_NAME, "FCOO1.nc");
 
         // let some time pass to let the consumer try to consume even though it cannot
         Thread.sleep(100);

@@ -16,6 +16,7 @@ public class ErrorHandlingTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
+                context.setTracing(true);
                 errorHandler(deadLetterChannel("mock:dead"));
 
                 from("file:target/test-classes?consumer.bridgeErrorHandler=true&noop=true")
@@ -41,6 +42,8 @@ public class ErrorHandlingTest extends CamelTestSupport {
         MockEndpoint end = context.getEndpoint("mock:output", MockEndpoint.class);
         MockEndpoint dead = context.getEndpoint("mock:dead", MockEndpoint.class);
 
+        // expect that no messages are sent to the endpoint
+        // and that one is sent to the error handler
         end.expectedMessageCount(0);
         dead.expectedMinimumMessageCount(1);
         template.sendBodyAndHeader("file://target/test-classes", Exchange.FILE_NAME, "DMI1.nc");

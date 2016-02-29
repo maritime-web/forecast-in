@@ -8,3 +8,6 @@ logging:
 ---
 spring:
   profiles: unittest
+
+logging:
+  file: forecastIn-test.log

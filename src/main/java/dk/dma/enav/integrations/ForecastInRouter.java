@@ -32,7 +32,7 @@ public class ForecastInRouter extends FatJarRouter {
     }
 
     // checks that a file is not more than 2 days old
-    @Bean(name = "notTooOld")
+    @Bean
     GenericFileFilter notTooOld() {
         return file -> {
             String fileName = file.getFileNameOnly();
