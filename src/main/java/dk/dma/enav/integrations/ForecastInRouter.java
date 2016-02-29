@@ -25,9 +25,11 @@ public class ForecastInRouter extends FatJarRouter {
     public void configure() {
         this.getContext().setTracing(true);
         from(dmiRoute)
+                .routeId("dmiRoute")
                 .to("file://" + "{{dmi.download.directory}}");
 
         from(fcooRoute)
+                .routeId("fcooRoute")
                 .to("file://" + "{{fcoo.download.directory}}");
     }
 
