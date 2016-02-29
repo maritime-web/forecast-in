@@ -1,4 +1,10 @@
-
-spring.main.sources: dk.dma.enav.integrations.MySpringBootRouter
+spring.main.sources: dk.dma.enav.integrations.ForecastInRouter
 
 server.port: 9080
+
+logging:
+  file: forecastIn.log
+
+---
+spring:
+  profiles: unittest
