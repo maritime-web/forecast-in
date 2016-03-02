@@ -5,6 +5,7 @@ import org.apache.camel.spring.boot.FatJarRouter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import javax.management.MalformedObjectNameException;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -22,15 +23,15 @@ public class ForecastInRouter extends FatJarRouter {
             "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
 
     @Override
-    public void configure() {
+    public void configure() throws MalformedObjectNameException {
         this.getContext().setTracing(true);
         from(dmiRoute)
                 .routeId("dmiRoute")
-                .to("file://" + "{{dmi.download.directory}}");
+                .to("file://{{dmi.download.directory}}?fileExist=Ignore");
 
         from(fcooRoute)
                 .routeId("fcooRoute")
-                .to("file://" + "{{fcoo.download.directory}}");
+                .to("file://{{fcoo.download.directory}}?fileExist=Ignore");
     }
 
     // checks that a file is not more than 2 days old
@@ -47,10 +48,10 @@ public class ForecastInRouter extends FatJarRouter {
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
             if (days < 2) {
-                log.info("File " + fileName + " is okay");
+                //log.info("File " + fileName + " is okay");
                 return true;
             }
-            log.info("File " + fileName + " is too old");
+            //log.info("File " + fileName + " is too old");
             return false;
         };
     }

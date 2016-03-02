@@ -3,11 +3,11 @@ spring.main.sources: dk.dma.enav.integrations.ForecastInRouter
 server.port: 9080
 
 logging:
-  file: forecastIn.log
+  file: target/logging/forecastIn.log
 
 ---
 spring:
   profiles: unittest
 
 logging:
-  file: forecastIn-test.log
+  file: target/logging/forecastIn-test.log
