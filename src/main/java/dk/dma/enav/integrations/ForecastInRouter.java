@@ -1,5 +1,6 @@
 package dk.dma.enav.integrations;
 
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.component.file.GenericFileFilter;
 import org.apache.camel.spring.boot.FatJarRouter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,6 +26,7 @@ public class ForecastInRouter extends FatJarRouter {
     @Override
     public void configure() {
         this.getContext().setTracing(true);
+        this.onException(CamelExecutionException.class).maximumRedeliveries(3).delay(10000);
         from(dmiRoute)
                 .routeId("dmiRoute")
                 .to("file://{{dmi.download.directory}}?fileExist=Ignore");
