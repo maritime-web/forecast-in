@@ -23,7 +23,7 @@ public class ForecastInRouter extends FatJarRouter {
             "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
 
     @Override
-    public void configure() throws MalformedObjectNameException {
+    public void configure() {
         this.getContext().setTracing(true);
         from(dmiRoute)
                 .routeId("dmiRoute")
