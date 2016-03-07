@@ -3,7 +3,7 @@ spring.main.sources: dk.dma.enav.integrations.ForecastInRouter
 server.port: 9080
 
 logging:
-  file: target/logging/forecastIn.log
+#  file: target/logging/forecastIn.log
 
 ---
 spring:
