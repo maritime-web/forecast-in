@@ -38,6 +38,7 @@ public class ForecastInRouter extends FatJarRouter {
     @Bean
     GenericFileFilter notTooOld() {
         return file -> {
+            //String fileName = file.getFileNameOnly();
             long fileLastModified = file.getLastModified();
 
             // the difference in milliseconds for the time now
