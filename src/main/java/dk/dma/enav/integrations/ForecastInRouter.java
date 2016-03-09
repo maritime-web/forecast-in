@@ -24,7 +24,7 @@ public class ForecastInRouter extends FatJarRouter {
     @Override
     public void configure() {
         this.getContext().setTracing(true);
-        this.onException(Exception.class).maximumRedeliveries(6).delay(10000);
+        this.onException(Exception.class).maximumRedeliveries(6);
         from(dmiRoute)
                 .routeId("dmiRoute")
                 .to("file://{{dmi.download.directory}}?fileExist=Ignore");
@@ -38,7 +38,6 @@ public class ForecastInRouter extends FatJarRouter {
     @Bean
     GenericFileFilter notTooOld() {
         return file -> {
-            String fileName = file.getFileNameOnly();
             long fileLastModified = file.getLastModified();
 
             // the difference in milliseconds for the time now
