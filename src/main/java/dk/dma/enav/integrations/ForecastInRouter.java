@@ -12,15 +12,15 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 public class ForecastInRouter extends FatJarRouter {
 
+    // standard template for the routes
+    private static String routeTemplate = "ftp://%s@%s%s?password=%s&passiveMode=true" +
+            "&filter=#notTooOld&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
+
     // where the dmi consumer should consume from
-    private String dmiRoute = String.format("ftp://%s@%s%s?password=%s&passiveMode=true" +
-            "&filter=#notTooOld&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m",
-            "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
+    private String dmiRoute = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
 
     // where the fcoo consumer should consume from
-    private String fcooRoute = String.format("ftp://%s@%s%s?password=%s&passiveMode=true" +
-            "&filter=#notTooOld&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m",
-            "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
+    private String fcooRoute = String.format(routeTemplate, "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
 
     @Override
     public void configure() {
@@ -47,7 +47,7 @@ public class ForecastInRouter extends FatJarRouter {
     @Bean
     GenericFileFilter notTooOld() {
         return file -> {
-            // String fileName = file.getFileNameOnly();
+            String fileName = file.getFileNameOnly();
             long fileLastModified = file.getLastModified();
 
             // the difference in milliseconds for the time now
@@ -56,11 +56,11 @@ public class ForecastInRouter extends FatJarRouter {
             // converts the difference to days
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
-            if (days < 2) {
+            if (days <= 2) {
                 //log.info("File " + fileName + " is okay");
                 return true;
             }
-            //log.info("File " + fileName + " is too old");
+            log.info("File " + fileName + " is too old, will not be consumed");
             return false;
         };
     }
