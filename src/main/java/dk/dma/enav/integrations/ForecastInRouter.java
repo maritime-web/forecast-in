@@ -1,5 +1,6 @@
 package dk.dma.enav.integrations;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.component.file.GenericFileFilter;
 import org.apache.camel.spring.boot.FatJarRouter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,12 +24,20 @@ public class ForecastInRouter extends FatJarRouter {
 
     @Override
     public void configure() {
+        // options for tracing and debugging
         this.getContext().setTracing(true);
-        this.onException(Exception.class).maximumRedeliveries(6);
+        this.onException(Exception.class)
+                .maximumRedeliveries(6)
+                .process(exchange -> {
+                    log.error("Exchange failed", exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY));
+                });
+
+        // create the dmi route
         from(dmiRoute)
                 .routeId("dmiRoute")
                 .to("file://{{dmi.download.directory}}?fileExist=Ignore");
 
+        // create the fcoo route
         from(fcooRoute)
                 .routeId("fcooRoute")
                 .to("file://{{fcoo.download.directory}}?fileExist=Ignore");
@@ -38,7 +47,7 @@ public class ForecastInRouter extends FatJarRouter {
     @Bean
     GenericFileFilter notTooOld() {
         return file -> {
-            //String fileName = file.getFileNameOnly();
+            // String fileName = file.getFileNameOnly();
             long fileLastModified = file.getLastModified();
 
             // the difference in milliseconds for the time now
