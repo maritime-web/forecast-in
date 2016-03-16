@@ -17,10 +17,10 @@ public class ForecastInRouter extends FatJarRouter {
             "&filter=#notTooOld&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
 
     // where the dmi consumer should consume from
-    private String dmiRoute = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
+    private String dmiFTP = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
 
     // where the fcoo consumer should consume from
-    private String fcooRoute = String.format(routeTemplate, "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
+    private String fcooFTP = String.format(routeTemplate, "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
 
     @Override
     public void configure() {
@@ -29,16 +29,16 @@ public class ForecastInRouter extends FatJarRouter {
         this.onException(Exception.class)
                 .maximumRedeliveries(6)
                 .process(exchange -> {
-                    log.error("Exchange failed", exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY));
+                    log.error("Exchange failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY));
                 });
 
         // create the dmi route
-        from(dmiRoute)
+        from(dmiFTP)
                 .routeId("dmiRoute")
                 .to("file://{{dmi.download.directory}}?fileExist=Ignore");
 
         // create the fcoo route
-        from(fcooRoute)
+        from(fcooFTP)
                 .routeId("fcooRoute")
                 .to("file://{{fcoo.download.directory}}?fileExist=Ignore");
     }
