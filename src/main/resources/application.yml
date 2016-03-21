@@ -3,11 +3,11 @@ spring.main.sources: dk.dma.enav.integrations.ForecastInRouter
 server.port: 9080
 
 logging:
-  file: target/logging/forecastIn.log
+  file: ${user.home}/arcticweb/ForecastIn/logging/forecastIn.log
 
 ---
 spring:
   profiles: unittest
 
 logging:
-  file: target/logging/forecastIn-test.log
+  file: ${user.home}/arcticweb/ForecastIn/logging/forecastIn-test.log

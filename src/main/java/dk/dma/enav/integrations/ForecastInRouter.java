@@ -14,7 +14,7 @@ public class ForecastInRouter extends FatJarRouter {
 
     // standard template for the routes
     private static String routeTemplate = "ftp://%s@%s%s?password=%s&passiveMode=true" +
-            "&filter=#notTooOld&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
+            "&filter=#notTooOld&localWorkDirectory=/tmp&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
 
     // where the dmi consumer should consume from
     private String dmiFTP = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
