@@ -35,12 +35,12 @@ public class ForecastInRouter extends FatJarRouter {
         // create the dmi route
         from(dmiFTP)
                 .routeId("dmiRoute")
-                .to("file://{{dmi.download.directory}}?fileExist=Ignore&chmod=666");
+                .to("file://{{dmi.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666");
 
         // create the fcoo route
         from(fcooFTP)
                 .routeId("fcooRoute")
-                .to("file://{{fcoo.download.directory}}?fileExist=Ignore&chmod=666");
+                .to("file://{{fcoo.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666");
     }
 
     // checks that a file is not more than 2 days old
