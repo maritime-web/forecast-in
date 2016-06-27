@@ -6,6 +6,8 @@ Integration point responsible for fetching forecast data files from various prov
 
 * Java 8 or later
 
+* Maven
+
 * A file called application.properties
 
 ## Configuration
