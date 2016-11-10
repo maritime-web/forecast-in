@@ -1,6 +1,6 @@
 # Dockerized forecast-in
 
-As described in [configuration](../README.md#configuration) you need a file called application.properties. 
+As described in [configuration](https://github.com/maritime-web/forecast-in/blob/master/README.md#configuration) you need a file called application.properties. 
 This needs to be placed in `$HOME/arcticweb/properties`. 
 In this file you need to include the string `logging.file` with no assignment. 
 
