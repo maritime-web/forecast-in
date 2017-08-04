@@ -28,9 +28,7 @@ public class ForecastInRouter extends FatJarRouter {
         this.getContext().setTracing(true);
         this.onException(Exception.class)
                 .maximumRedeliveries(6)
-                .process(exchange -> {
-                    log.error("Exchange failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY));
-                });
+                .process(exchange -> log.error("Exchange failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
 
         // create the dmi route
         from(dmiFTP)
@@ -57,10 +55,10 @@ public class ForecastInRouter extends FatJarRouter {
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
             if (days <= 2) {
-                //log.info("File " + fileName + " is okay");
+                log.info("File " + fileName + " is okay and will be consumed");
                 return true;
             }
-            log.info("File " + fileName + " is too old, will not be consumed");
+            //log.info("File " + fileName + " is too old, will not be consumed");
             return false;
         };
     }
