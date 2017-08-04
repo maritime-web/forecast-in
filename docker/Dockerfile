@@ -1,4 +1,4 @@
-FROM java:8-jre
+FROM openjdk:8-jre
 
 RUN mkdir /data /data/forecastin /data/arcticweb
 
