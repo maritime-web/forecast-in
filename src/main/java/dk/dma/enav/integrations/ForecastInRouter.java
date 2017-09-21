@@ -25,20 +25,24 @@ public class ForecastInRouter extends FatJarRouter {
     @Override
     public void configure() {
         // options for tracing and debugging
-        this.getContext().setTracing(true);
+        this.getContext().setTracing(false);
         this.onException(Exception.class)
                 .maximumRedeliveries(6)
-                .process(exchange -> log.error("Exchange failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
+                .process(exchange -> log.error("Transfer failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
 
         // create the dmi route
         from(dmiFTP)
                 .routeId("dmiRoute")
-                .to("file://{{dmi.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666");
+                .process(exchange -> log.info("Beginning transfer of file: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)))
+                .to("file://{{dmi.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666")
+                .process(exchange -> log.info("Transfer succeeded for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
 
         // create the fcoo route
         from(fcooFTP)
                 .routeId("fcooRoute")
-                .to("file://{{fcoo.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666");
+                .process(exchange -> log.info("Beginning transfer of file: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)))
+                .to("file://{{fcoo.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666")
+                .process(exchange -> log.info("Transfer succeeded for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
     }
 
     // checks that a file is not more than 2 days old
@@ -55,7 +59,7 @@ public class ForecastInRouter extends FatJarRouter {
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
             if (days <= 2) {
-                log.info("File " + fileName + " is okay and will be consumed");
+                log.debug("File " + fileName + " is okay and will be consumed");
                 return true;
             }
             //log.info("File " + fileName + " is too old, will not be consumed");
