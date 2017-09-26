@@ -2,7 +2,10 @@ package dk.dma.enav.integrations;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.file.GenericFileFilter;
+import org.apache.camel.processor.idempotent.MemoryIdempotentRepository;
+import org.apache.camel.spi.IdempotentRepository;
 import org.apache.camel.spring.boot.FatJarRouter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
@@ -13,34 +16,41 @@ import java.util.concurrent.TimeUnit;
 public class ForecastInRouter extends FatJarRouter {
 
     // standard template for the routes
-    private static String routeTemplate = "ftp://%s@%s%s?password=%s&passiveMode=true" +
-            "&filter=#notTooOld&localWorkDirectory=/tmp&idempotent=true&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
+    private static String routeTemplate = "ftp://%s@%s%s?password=%s&passiveMode=%s" +
+            "&filter=#notTooOld&localWorkDirectory=/tmp&idempotent=true&idempotentRepository=#getIdempotentRepository&consumer.bridgeErrorHandler=true&binary=true&delay=15m";
 
-    // where the dmi consumer should consume from
-    private String dmiFTP = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}");
+    @Value("${dmi.passiveMode:false}")
+    private String dmiPassiveMode;
 
-    // where the fcoo consumer should consume from
-    private String fcooFTP = String.format(routeTemplate, "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}");
+    @Value("${fcoo.passiveMode:false}")
+    private String fcooPassiveMode;
+
+    @Value("${tracing:false}")
+    private boolean tracing;
+
+    private IdempotentRepository<String> idempotentRepository = new MemoryIdempotentRepository();
 
     @Override
     public void configure() {
         // options for tracing and debugging
-        this.getContext().setTracing(false);
+        this.getContext().setTracing(tracing);
         this.onException(Exception.class)
                 .maximumRedeliveries(6)
                 .process(exchange -> log.error("Transfer failed for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
 
+        String dmiFTP = String.format(routeTemplate, "{{dmi.user}}", "{{dmi.server}}", "{{dmi.directory}}", "{{dmi.password}}", dmiPassiveMode);
+
         // create the dmi route
         from(dmiFTP)
                 .routeId("dmiRoute")
-                .process(exchange -> log.info("Beginning transfer of file: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)))
                 .to("file://{{dmi.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666")
                 .process(exchange -> log.info("Transfer succeeded for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
+
+        String fcooFTP = String.format(routeTemplate, "{{fcoo.user}}", "{{fcoo.server}}", "{{fcoo.directory}}", "{{fcoo.password}}", fcooPassiveMode);
 
         // create the fcoo route
         from(fcooFTP)
                 .routeId("fcooRoute")
-                .process(exchange -> log.info("Beginning transfer of file: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)))
                 .to("file://{{fcoo.download.directory}}?fileExist=Ignore&chmod=666&chmodDirectory=666")
                 .process(exchange -> log.info("Transfer succeeded for: " + exchange.getIn().getHeader(Exchange.FILE_NAME_ONLY)));
     }
@@ -58,12 +68,17 @@ public class ForecastInRouter extends FatJarRouter {
             // converts the difference to days
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
-            if (days <= 2) {
+            if (days <= 2 && !this.idempotentRepository.contains(file.getAbsoluteFilePath())) {
                 log.debug("File " + fileName + " is okay and will be consumed");
                 return true;
             }
             //log.info("File " + fileName + " is too old, will not be consumed");
             return false;
         };
+    }
+
+    @Bean
+    IdempotentRepository<String> getIdempotentRepository() {
+        return this.idempotentRepository;
     }
 }
